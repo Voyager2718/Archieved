@@ -9,13 +9,11 @@ const unsigned int KEY_IN_PRESS = 2; //Pin controller SW(Press) to analog 2
 const unsigned int MOTOR_PIN = 12; //Pin motor to Digital output 12
 const unsigned int MOTOR_DELAY = 0;
 
-const unsigned int SERIAL_DELAY = 5;
+const unsigned int SERIAL_DELAY = 0;
 
 const unsigned int LED_PIN = 13; //Pin LED to Digital output 13
 
 Servo servo;
-
-int led_off_delay = 0;
 
 void setup() {
   Serial.begin(BAUD_RATE); //Init serial
@@ -25,9 +23,8 @@ void setup() {
   pinMode(LED_PIN, OUTPUT); // Set LED pin as output
 }
 
-int motor_angles[3] = {0, 0, 0};
-int motor_angle_present = 0;
-int motor_angles_index = 0;
+int motor_speed = 0;
+int motor_angle = 100;
 
 void loop() {
   float x, y;
@@ -36,39 +33,55 @@ void loop() {
   y = analogRead(KEY_IN_Y); //Read y coord
   pressed = !analogRead(KEY_IN_PRESS); //Read press or not (Not 0: Pressed; 0 Not Pressed)
 
-  //int motor_angle = int(x/3.722)<10?10:int(x/3.722); //Set minimum motor angle as 10 degree.
-  int motor_angle = int(x/39.4706)*10+10; // Angle = floor(x/(range of x/number of segments))*(range of motor/number of segments) + minimum angle of motor
-  motor_angles[motor_angles_index] = motor_angle;
-  motor_angles_index++;
-  if(motor_angles_index>2){
-    motor_angles_index=0;
+  if(x < 5){
+    motor_speed = -180;
+  }else if(x >= 5 && x < 50){
+    motor_speed = -25;
+  }else if(x >= 50 && x < 200){
+    motor_speed = -10;
+  }else if(x >= 200 && x < 300){
+    motor_speed = -1;
+  }else if(x >= 300 && x < 350){
+    motor_speed = 0;
+  }else if(x >= 350 && x < 450){
+    motor_speed = 1;
+  }else if(x >= 450 && x < 600){
+    motor_speed = 10;
+  }else if(x >= 600 && x < 670){
+    motor_speed = 25;
+  }else if(x >= 670){
+    motor_speed = 180;
   }
-  if(motor_angles[0]+motor_angles[1]+motor_angles[2]==motor_angles[0]*3){
-    motor_angle_present=motor_angles[0];
+
+  motor_angle += motor_speed;
+
+  if(motor_angle > 180){
+    motor_angle = 180;
   }
-  
-  servo.write(motor_angle_present); //Turn motor
+  if(motor_angle < 10){
+    motor_angle = 10;
+  }
 
   if(pressed){
-    led_off_delay = 0;
     digitalWrite(LED_PIN, HIGH);  
+    motor_angle = 100;
   }else{
-    if(led_off_delay < 50){
-      led_off_delay ++;
-    }else{
       digitalWrite(LED_PIN, LOW);
-      led_off_delay = 0;
-    }
   }
+
+  servo.write(motor_angle); //Turn motor
   
   Serial.print("x=");//Write to monitor
   Serial.print(x);
   Serial.print(" y=");
   Serial.print(y);
   Serial.print(pressed?" Pressed":" Not pressed");
+  Serial.print(" speed=");
+  Serial.print(motor_speed);
   Serial.print(" angle=");
-  Serial.print(motor_angle_present);
+  Serial.print(motor_angle);
   Serial.println();
 
   delay(MOTOR_DELAY + SERIAL_DELAY);
 }
+
