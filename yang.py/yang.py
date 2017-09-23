@@ -39,7 +39,7 @@ def Cov1(a,b):
 def R1(a,b):
     return Cov1(a,b)/(sqrt(Var1(a))*sqrt(Var1(b)))
 
-# Get csv information
+# Get information from csv file
 def ReadFromCSV(path, separation = ','):
     titles = []
     contents = []
@@ -55,3 +55,13 @@ def ReadFromCSV(path, separation = ','):
             contents += [tmp_content]
             lines = file.readline()
     return contents
+
+# Write information to csv file
+def WriteToCSV(path, separation = ','):
+    return
+
+# Get information from xml file
+
+# Write information to xml file
+
+# 
